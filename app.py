@@ -1,20 +1,9 @@
 import streamlit as st
-import pymongo
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import plotly.express as px
-from datetime import datetime
+from PIL import Image
 
 # Set page config to wide mode
 st.set_page_config(layout="wide")
-
-# MongoDB connection
-client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["veritrace"]
-collection = db["veritrace_all"]
-
-ROWS_PER_PAGE = 20  # Show 20 records per page
 
 # Custom CSS to style the app
 st.markdown("""
@@ -50,17 +39,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+ROWS_PER_PAGE = 20  # Show 20 records per page
+
 @st.cache_data
-def fetch_all_data():
-    data = list(collection.find({}, {'_id': 0}))
-    return pd.DataFrame(data)
+def load_data():
+    return pd.read_json('veritrace.veritrace_all.json')
 
-def fetch_paginated_data(skip, limit):
-    data = list(collection.find().skip(skip).limit(limit))
-    return pd.DataFrame(data)
-
+@st.cache_data
 def get_total_records():
-    return collection.count_documents({})
+    with open('visualizations/total_records.txt', 'r') as f:
+        return int(f.read().strip())
 
 def display_dataframe(df, width=None, height=450):
     styled_df = df.style.set_table_styles([
@@ -70,52 +58,18 @@ def display_dataframe(df, width=None, height=450):
     ])
     st.dataframe(styled_df, width=width, height=height, use_container_width=True)
 
-def plot_bar_chart(df, column, title, top_n=20):
-    plt.figure(figsize=(12, 6))
-    value_counts = df[column].value_counts().nlargest(top_n)
-    ax = sns.barplot(x=value_counts.index, y=value_counts.values)
-    plt.title(title)
-    plt.xlabel(column)
-    plt.ylabel('Count')
-    plt.xticks(rotation=45, ha='right')
-    
-    # Add count labels on top of each bar
-    for i, v in enumerate(value_counts.values):
-        ax.text(i, v, str(v), ha='center', va='bottom')
-    
-    plt.tight_layout()
-    st.pyplot(plt)
-
-def plot_date_histogram(df, date_column):
-    df[date_column] = pd.to_numeric(df[date_column], errors='coerce')
-    df = df[(df[date_column] >= 1540) & (df[date_column] <= 1728)]
-    
-    plt.figure(figsize=(12, 6))
-    ax = sns.histplot(data=df, x=date_column, bins=188, kde=True)
-    plt.title('Distribution of Records by Date (1540-1728)', fontsize=14)
-    plt.xlabel('Year', fontsize=12)
-    plt.ylabel('Count', fontsize=12)
-    plt.xticks(fontsize=11)
-    plt.yticks(fontsize=11)
-    
-    # Remove the top and right spines
-    sns.despine()
-    
-    plt.tight_layout()
-    st.pyplot(plt)
-
 def main():
     st.title("VERITRACE Metadata Visualizations")
     
-    # Fetch all data for analytics and search
-    with st.spinner('Loading all data...'):
-        full_df = fetch_all_data()
+    # Load data
+    with st.spinner('Loading data...'):
+        full_df = load_data()
     
     # Initialize session state for pagination
     if 'page' not in st.session_state:
         st.session_state.page = 1
     
-    total_records = len(full_df)
+    total_records = get_total_records()
     total_pages = -(-total_records // ROWS_PER_PAGE)  # Ceiling division
     
     # Display searchable dataframe
@@ -150,24 +104,20 @@ def main():
     st.markdown("## Analytics")
     
     # 1. Number of records by 'source_name' column
-    if 'source_name' in full_df.columns:
-        st.subheader("Number of Records by Source Name")
-        plot_bar_chart(full_df, 'source_name', 'Records by Source Name')
+    st.subheader("Number of Records by Source Name")
+    st.image('visualizations/source_name_chart.png')
     
     # 2. Number of records by 'file_type'
-    if 'file_type' in full_df.columns:
-        st.subheader("Number of Records by File Type")
-        plot_bar_chart(full_df, 'file_type', 'Records by File Type')
+    st.subheader("Number of Records by File Type")
+    st.image('visualizations/file_type_chart.png')
     
     # 3. Date visualization for 'simple_clean_date'
-    if 'simple_clean_date' in full_df.columns:
-        st.subheader("Distribution of Records by Date (1540-1728)")
-        plot_date_histogram(full_df, 'simple_clean_date')
+    st.subheader("Distribution of Records by Date (1540-1728)")
+    st.image('visualizations/date_histogram.png')
     
     # 4. Counts of records for 'primary_language_orig'
-    if 'primary_language_orig' in full_df.columns:
-        st.subheader("Number of Records by Primary Language")
-        plot_bar_chart(full_df, 'primary_language_orig', 'Records by Primary Language')
+    st.subheader("Number of Records by Primary Language")
+    st.image('visualizations/language_chart.png')
 
 if __name__ == "__main__":
     main()
