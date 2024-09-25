@@ -11,6 +11,9 @@ import seaborn as sns
 from collections import Counter
 import re
 
+# Set the page title, which will also change the sidebar name
+st.set_page_config(page_title="VERITRACE metadata")
+
 # Set seed for langdetect to ensure consistent results
 DetectorFactory.seed = 0
 

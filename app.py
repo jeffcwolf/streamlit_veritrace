@@ -3,33 +3,7 @@ import pandas as pd
 from PIL import Image
 
 # Set page config to wide mode and set the page title
-st.set_page_config(layout="wide", page_title="VERITRACE metadata")
-
-# Custom CSS to inject contained in a string
-custom_css = """
-<style>
-    .sidebar .sidebar-content {
-        background-image: linear-gradient(#2e7bcf,#2e7bcf);
-        color: white;
-    }
-    .sidebar .sidebar-content .block-container {
-        padding-top: 1rem;
-    }
-    .sidebar .sidebar-content .block-container h1 {
-        color: white;
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-    }
-</style>
-"""
-
-# Inject custom CSS with Markdown
-st.markdown(custom_css, unsafe_allow_html=True)
-
-# Sidebar
-with st.sidebar:
-    st.markdown("# VERITRACE metadata")
-    st.markdown("---")
+st.set_page_config(layout="wide")
 
 @st.cache_data
 def get_total_records():
