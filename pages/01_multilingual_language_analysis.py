@@ -167,8 +167,11 @@ def main():
         
         # Language analysis options
         st.subheader("Language Analysis Options")
-        analysis_method = st.selectbox("Choose analysis method", ["ngram", "lines"])
-        n = st.slider("Select n-gram size or number of lines", min_value=1, max_value=10, value=3)
+        analysis_method = st.selectbox("Choose analysis method", ["lines", "ngram"], index=0)  # Set "lines" as default
+        if analysis_method == "lines":
+            n = st.slider("Select number of lines", min_value=1, max_value=10, value=2)  # Default to 2 lines
+        else:
+            n = st.slider("Select n-gram size", min_value=1, max_value=10, value=3)  # Keep 3 as default for n-grams
 
         if st.button("Analyze"):
             with st.spinner('Analyzing languages...'):
