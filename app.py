@@ -3,9 +3,7 @@ import pandas as pd
 from PIL import Image
 
 # Set page config to wide mode and set the page title
-st.set_page_config(layout="wide")
-# Set the page title, which will also change the sidebar name
-st.set_page_config(page_title="VERITRACE metadata")
+st.set_page_config(layout="wide", page_title="VERITRACE metadata")
 
 @st.cache_data
 def get_total_records():
