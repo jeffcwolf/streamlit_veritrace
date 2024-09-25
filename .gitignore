@@ -76,6 +76,9 @@ ENV/
 # Backups
 backups/
 
+# Large Files
+large_files/
+
 # OS generated files
 .DS_Store
 .DS_Store?
